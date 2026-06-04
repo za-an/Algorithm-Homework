@@ -15,8 +15,10 @@
 #include <unordered_map>
 #include <vector>
 
+using namespace std;
+
 using ll = long long;
-namespace fs = std::filesystem;
+namespace fs = filesystem;
 
 struct Item {
     int index{};
@@ -29,76 +31,76 @@ struct Item {
 };
 
 struct Instance {
-    std::string name;
-    std::string source;
+    string name;
+    string source;
     ll capacity{};
     ll knownOptimum{-1};
     long double valueScale{1.0L};
     long double weightScale{1.0L};
-    std::vector<Item> items;
+    vector<Item> items;
 };
 
 struct Solution {
-    std::string algorithm;
+    string algorithm;
     ll value{};
     ll weight{};
-    std::vector<int> selectedItems;
+    vector<int> selectedItems;
     bool optimal{};
-    std::size_t memoryBytes{};
-    std::string details;
+    size_t memoryBytes{};
+    string details;
 };
 
 struct Record {
-    std::string source;
-    std::string dataset;
+    string source;
+    string dataset;
     int itemCount{};
     ll capacity{};
     ll knownOptimum{-1};
     long double valueScale{1.0L};
     long double weightScale{1.0L};
-    std::string algorithm;
-    std::string status;
+    string algorithm;
+    string status;
     ll value{};
     ll weight{};
-    std::vector<int> selectedItems;
+    vector<int> selectedItems;
     double timeMs{};
     double memoryKb{};
     bool optimal{};
     ll referenceOptimum{};
     double qualityRatio{-1.0};
-    std::string details;
+    string details;
 };
 
-static std::string trim(const std::string& s) {
+static string trim(const string& s) {
     const auto first = s.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos) {
+    if (first == string::npos) {
         return "";
     }
     const auto last = s.find_last_not_of(" \t\r\n");
     return s.substr(first, last - first + 1);
 }
 
-static std::string toLower(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) {
-        return static_cast<char>(std::tolower(ch));
+static string toLower(string s) {
+    transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) {
+        return static_cast<char>(tolower(ch));
     });
     return s;
 }
 
-static std::vector<std::string> splitWords(std::string line) {
-    std::replace(line.begin(), line.end(), ',', ' ');
-    std::istringstream input(line);
-    std::vector<std::string> parts;
-    std::string part;
+static vector<string> splitWords(string line) {
+    replace(line.begin(), line.end(), ',', ' ');
+    istringstream input(line);
+    vector<string> parts;
+    string part;
     while (input >> part) {
         parts.push_back(part);
     }
     return parts;
 }
 
-static std::string joinIndexes(const std::vector<int>& values, const std::string& sep = " ") {
-    std::ostringstream output;
-    for (std::size_t i = 0; i < values.size(); ++i) {
+static string joinIndexes(const vector<int>& values, const string& sep = " ") {
+    ostringstream output;
+    for (size_t i = 0; i < values.size(); ++i) {
         if (i > 0) {
             output << sep;
         }
@@ -107,13 +109,13 @@ static std::string joinIndexes(const std::vector<int>& values, const std::string
     return output.str();
 }
 
-static std::string csvEscape(const std::string& value) {
-    bool needQuotes = value.find_first_of(",\"\n\r") != std::string::npos;
+static string csvEscape(const string& value) {
+    bool needQuotes = value.find_first_of(",\"\n\r") != string::npos;
     if (!needQuotes) {
         return value;
     }
 
-    std::string escaped = "\"";
+    string escaped = "\"";
     for (char ch : value) {
         if (ch == '"') {
             escaped += "\"\"";
@@ -125,8 +127,8 @@ static std::string csvEscape(const std::string& value) {
     return escaped;
 }
 
-static std::string htmlEscape(const std::string& value) {
-    std::string escaped;
+static string htmlEscape(const string& value) {
+    string escaped;
     for (char ch : value) {
         switch (ch) {
             case '&':
@@ -149,41 +151,41 @@ static std::string htmlEscape(const std::string& value) {
     return escaped;
 }
 
-static bool startsWith(const std::string& value, const std::string& prefix) {
+static bool startsWith(const string& value, const string& prefix) {
     return value.rfind(prefix, 0) == 0;
 }
 
-static std::vector<ll> readNumbersFromFile(const fs::path& path) {
-    std::ifstream file(path);
+static vector<ll> readNumbersFromFile(const fs::path& path) {
+    ifstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot open file: " + path.string());
+        throw runtime_error("cannot open file: " + path.string());
     }
 
-    std::vector<ll> numbers;
-    std::string token;
+    vector<ll> numbers;
+    string token;
     while (file >> token) {
         if (!token.empty() && token[0] == '#') {
-            std::string ignored;
-            std::getline(file, ignored);
+            string ignored;
+            getline(file, ignored);
             continue;
         }
-        numbers.push_back(std::stoll(token));
+        numbers.push_back(stoll(token));
     }
     return numbers;
 }
 
-static std::vector<std::string> readNumberTokensFromFile(const fs::path& path) {
-    std::ifstream file(path);
+static vector<string> readNumberTokensFromFile(const fs::path& path) {
+    ifstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot open file: " + path.string());
+        throw runtime_error("cannot open file: " + path.string());
     }
 
-    std::vector<std::string> tokens;
-    std::string token;
+    vector<string> tokens;
+    string token;
     while (file >> token) {
         if (!token.empty() && token[0] == '#') {
-            std::string ignored;
-            std::getline(file, ignored);
+            string ignored;
+            getline(file, ignored);
             continue;
         }
         tokens.push_back(token);
@@ -191,25 +193,25 @@ static std::vector<std::string> readNumberTokensFromFile(const fs::path& path) {
     return tokens;
 }
 
-static bool hasDecimalToken(const std::string& token) {
-    return token.find('.') != std::string::npos ||
-           token.find('e') != std::string::npos ||
-           token.find('E') != std::string::npos;
+static bool hasDecimalToken(const string& token) {
+    return token.find('.') != string::npos ||
+           token.find('e') != string::npos ||
+           token.find('E') != string::npos;
 }
 
-static ll parseScaled(const std::string& token, long double scale) {
-    return static_cast<ll>(std::llround(std::stold(token) * scale));
+static ll parseScaled(const string& token, long double scale) {
+    return static_cast<ll>(llround(stold(token) * scale));
 }
 
-static std::string formatScaled(ll value, long double scale, int precision = 4) {
+static string formatScaled(ll value, long double scale, int precision = 4) {
     if (scale == 1.0L) {
-        return std::to_string(value);
+        return to_string(value);
     }
 
-    std::ostringstream output;
-    output << std::fixed << std::setprecision(precision)
+    ostringstream output;
+    output << fixed << setprecision(precision)
            << static_cast<long double>(value) / scale;
-    std::string text = output.str();
+    string text = output.str();
     while (text.size() > 1 && text.back() == '0') {
         text.pop_back();
     }
@@ -219,58 +221,58 @@ static std::string formatScaled(ll value, long double scale, int precision = 4) 
     return text;
 }
 
-static std::string formatRatio(double value) {
+static string formatRatio(double value) {
     if (value < 0.0) {
         return "";
     }
-    std::ostringstream output;
-    output << std::fixed << std::setprecision(6) << value;
+    ostringstream output;
+    output << fixed << setprecision(6) << value;
     return output.str();
 }
 
 static void validateInstance(const Instance& instance, const fs::path& path) {
     if (instance.capacity < 0) {
-        throw std::runtime_error("capacity must be non-negative in " + path.string());
+        throw runtime_error("capacity must be non-negative in " + path.string());
     }
     if (instance.items.empty()) {
-        throw std::runtime_error("empty instance in " + path.string());
+        throw runtime_error("empty instance in " + path.string());
     }
     for (const Item& item : instance.items) {
         if (item.weight <= 0 || item.value < 0) {
-            throw std::runtime_error("invalid item weight/value in " + path.string());
+            throw runtime_error("invalid item weight/value in " + path.string());
         }
     }
 }
 
 static Instance readSimpleInstance(const fs::path& path) {
-    std::ifstream file(path);
+    ifstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot open dataset: " + path.string());
+        throw runtime_error("cannot open dataset: " + path.string());
     }
 
     Instance instance;
     instance.name = path.stem().string();
     instance.source = "FSU";
     bool hasCapacity = false;
-    std::string capacityToken;
-    std::string knownOptimumToken;
-    std::vector<std::vector<std::string>> tokenRows;
+    string capacityToken;
+    string knownOptimumToken;
+    vector<vector<string>> tokenRows;
 
-    std::string rawLine;
-    while (std::getline(file, rawLine)) {
+    string rawLine;
+    while (getline(file, rawLine)) {
         const auto comment = rawLine.find('#');
-        if (comment != std::string::npos) {
-            const std::string commentText = trim(rawLine.substr(comment + 1));
-            const std::string lowerComment = toLower(commentText);
+        if (comment != string::npos) {
+            const string commentText = trim(rawLine.substr(comment + 1));
+            const string lowerComment = toLower(commentText);
             if (startsWith(lowerComment, "source:")) {
-                instance.source = trim(commentText.substr(std::string("source:").size()));
+                instance.source = trim(commentText.substr(string("source:").size()));
             } else if (startsWith(lowerComment, "optimal value:")) {
-                knownOptimumToken = trim(commentText.substr(std::string("optimal value:").size()));
+                knownOptimumToken = trim(commentText.substr(string("optimal value:").size()));
             }
             rawLine = rawLine.substr(0, comment);
         }
 
-        const std::string line = trim(rawLine);
+        const string line = trim(rawLine);
         if (line.empty()) {
             continue;
         }
@@ -280,14 +282,14 @@ static Instance readSimpleInstance(const fs::path& path) {
             continue;
         }
 
-        std::string key = toLower(parts[0]);
+        string key = toLower(parts[0]);
         if (!key.empty() && key.back() == ':') {
             key.pop_back();
         }
 
         if (key == "name" && parts.size() >= 2) {
             instance.name.clear();
-            for (std::size_t i = 1; i < parts.size(); ++i) {
+            for (size_t i = 1; i < parts.size(); ++i) {
                 if (i > 1) {
                     instance.name += " ";
                 }
@@ -306,28 +308,28 @@ static Instance readSimpleInstance(const fs::path& path) {
 
         try {
             for (const auto& part : parts) {
-                std::size_t parsed = 0;
-                std::stold(part, &parsed);
+                size_t parsed = 0;
+                stold(part, &parsed);
                 if (parsed != part.size()) {
-                    throw std::invalid_argument("trailing characters");
+                    throw invalid_argument("trailing characters");
                 }
             }
-        } catch (const std::exception&) {
-            throw std::runtime_error("cannot parse line in " + path.string() + ": " + line);
+        } catch (const exception&) {
+            throw runtime_error("cannot parse line in " + path.string() + ": " + line);
         }
         tokenRows.push_back(parts);
     }
 
-    std::vector<std::vector<std::string>> itemRows;
+    vector<vector<string>> itemRows;
     if (!hasCapacity) {
         if (tokenRows.empty() || tokenRows[0].size() < 2) {
-            throw std::runtime_error("missing header n capacity in " + path.string());
+            throw runtime_error("missing header n capacity in " + path.string());
         }
-        const ll declaredN = std::stoll(tokenRows[0][0]);
+        const ll declaredN = stoll(tokenRows[0][0]);
         capacityToken = tokenRows[0][1];
         itemRows.assign(tokenRows.begin() + 1, tokenRows.end());
         if (declaredN != static_cast<ll>(itemRows.size())) {
-            throw std::runtime_error("item count mismatch in " + path.string());
+            throw runtime_error("item count mismatch in " + path.string());
         }
     } else {
         itemRows = tokenRows;
@@ -337,7 +339,7 @@ static Instance readSimpleInstance(const fs::path& path) {
     bool hasDecimalValue = hasDecimalToken(knownOptimumToken);
     for (const auto& row : itemRows) {
         if (row.size() < 2) {
-            throw std::runtime_error("item row must contain weight and value in " + path.string());
+            throw runtime_error("item row must contain weight and value in " + path.string());
         }
         hasDecimalWeight = hasDecimalWeight || hasDecimalToken(row[0]);
         hasDecimalValue = hasDecimalValue || hasDecimalToken(row[1]);
@@ -353,7 +355,7 @@ static Instance readSimpleInstance(const fs::path& path) {
         instance.knownOptimum = parseScaled(knownOptimumToken, instance.valueScale);
     }
 
-    for (std::size_t i = 0; i < itemRows.size(); ++i) {
+    for (size_t i = 0; i < itemRows.size(); ++i) {
         Item item;
         item.index = static_cast<int>(i + 1);
         item.weight = parseScaled(itemRows[i][0], instance.weightScale);
@@ -361,7 +363,7 @@ static Instance readSimpleInstance(const fs::path& path) {
         instance.items.push_back(item);
     }
 
-    if (instance.source.find("Florida State University") != std::string::npos) {
+    if (instance.source.find("Florida State University") != string::npos) {
         instance.source = "FSU KNAPSACK_01";
     }
     validateInstance(instance, path);
@@ -369,9 +371,9 @@ static Instance readSimpleInstance(const fs::path& path) {
 }
 
 static Instance readUnicaucaInstance(const fs::path& path, const fs::path& optimumPath) {
-    const std::vector<std::string> tokens = readNumberTokensFromFile(path);
+    const vector<string> tokens = readNumberTokensFromFile(path);
     if (tokens.size() < 2) {
-        throw std::runtime_error("invalid Unicauca instance: " + path.string());
+        throw runtime_error("invalid Unicauca instance: " + path.string());
     }
 
     Instance instance;
@@ -380,15 +382,15 @@ static Instance readUnicaucaInstance(const fs::path& path, const fs::path& optim
         ? "Unicauca large_scale"
         : "Unicauca low-dimensional";
 
-    const ll declaredN = std::stoll(tokens[0]);
-    const std::size_t itemTokenCount = static_cast<std::size_t>(2 + declaredN * 2);
-    const std::size_t itemAndSelectionTokenCount = static_cast<std::size_t>(2 + declaredN * 3);
+    const ll declaredN = stoll(tokens[0]);
+    const size_t itemTokenCount = static_cast<size_t>(2 + declaredN * 2);
+    const size_t itemAndSelectionTokenCount = static_cast<size_t>(2 + declaredN * 3);
     if (tokens.size() != itemTokenCount && tokens.size() != itemAndSelectionTokenCount) {
-        throw std::runtime_error("item count mismatch in " + path.string());
+        throw runtime_error("item count mismatch in " + path.string());
     }
 
     bool hasDecimal = false;
-    for (std::size_t i = 1; i < tokens.size(); ++i) {
+    for (size_t i = 1; i < tokens.size(); ++i) {
         hasDecimal = hasDecimal || hasDecimalToken(tokens[i]);
     }
     if (hasDecimal) {
@@ -398,8 +400,8 @@ static Instance readUnicaucaInstance(const fs::path& path, const fs::path& optim
 
     instance.capacity = parseScaled(tokens[1], instance.weightScale);
     for (ll i = 0; i < declaredN; ++i) {
-        const ll value = parseScaled(tokens[static_cast<std::size_t>(2 + i * 2)], instance.valueScale);
-        const ll weight = parseScaled(tokens[static_cast<std::size_t>(2 + i * 2 + 1)], instance.weightScale);
+        const ll value = parseScaled(tokens[static_cast<size_t>(2 + i * 2)], instance.valueScale);
+        const ll weight = parseScaled(tokens[static_cast<size_t>(2 + i * 2 + 1)], instance.weightScale);
         instance.items.push_back({static_cast<int>(i + 1), weight, value});
     }
 
@@ -416,11 +418,11 @@ static Instance readUnicaucaInstance(const fs::path& path, const fs::path& optim
 
 static Instance readJjInstance(
     const fs::path& testPath,
-    const std::unordered_map<std::string, ll>& optima
+    const unordered_map<string, ll>& optima
 ) {
-    const std::vector<ll> numbers = readNumbersFromFile(testPath);
+    const vector<ll> numbers = readNumbersFromFile(testPath);
     if (numbers.size() < 2) {
-        throw std::runtime_error("invalid JorikJooken instance: " + testPath.string());
+        throw runtime_error("invalid JorikJooken instance: " + testPath.string());
     }
 
     Instance instance;
@@ -428,12 +430,12 @@ static Instance readJjInstance(
     instance.source = "JorikJooken";
 
     const ll declaredN = numbers[0];
-    if (numbers.size() != static_cast<std::size_t>(1 + declaredN * 3 + 1)) {
-        throw std::runtime_error("item count mismatch in " + testPath.string());
+    if (numbers.size() != static_cast<size_t>(1 + declaredN * 3 + 1)) {
+        throw runtime_error("item count mismatch in " + testPath.string());
     }
 
     for (ll i = 0; i < declaredN; ++i) {
-        const std::size_t offset = static_cast<std::size_t>(1 + i * 3);
+        const size_t offset = static_cast<size_t>(1 + i * 3);
         const ll id = numbers[offset];
         const ll value = numbers[offset + 1];
         const ll weight = numbers[offset + 2];
@@ -450,10 +452,10 @@ static Instance readJjInstance(
     return instance;
 }
 
-static std::vector<Item> sortedByRatio(const std::vector<Item>& items) {
-    std::vector<Item> sorted = items;
-    std::sort(sorted.begin(), sorted.end(), [](const Item& a, const Item& b) {
-        if (std::abs(a.ratio() - b.ratio()) > 1e-12) {
+static vector<Item> sortedByRatio(const vector<Item>& items) {
+    vector<Item> sorted = items;
+    sort(sorted.begin(), sorted.end(), [](const Item& a, const Item& b) {
+        if (abs(a.ratio() - b.ratio()) > 1e-12) {
             return a.ratio() > b.ratio();
         }
         if (a.value != b.value) {
@@ -468,13 +470,13 @@ static std::vector<Item> sortedByRatio(const std::vector<Item>& items) {
 }
 
 static double fractionalUpperBound(
-    const std::vector<Item>& items,
+    const vector<Item>& items,
     int start,
     ll capacityLeft,
     ll currentValue
 ) {
     if (capacityLeft < 0) {
-        return -std::numeric_limits<double>::infinity();
+        return -numeric_limits<double>::infinity();
     }
 
     double bound = static_cast<double>(currentValue);
@@ -508,7 +510,7 @@ static Solution solveGreedy(const Instance& instance) {
             solution.selectedItems.push_back(item.index);
         }
     }
-    std::sort(solution.selectedItems.begin(), solution.selectedItems.end());
+    sort(solution.selectedItems.begin(), solution.selectedItems.end());
     solution.memoryBytes = sizeof(Item) * instance.items.size() * 2 +
                            sizeof(int) * solution.selectedItems.size();
     return solution;
@@ -516,23 +518,23 @@ static Solution solveGreedy(const Instance& instance) {
 
 static Solution solveDynamicProgramming(const Instance& instance) {
     if (instance.capacity > 5000000) {
-        throw std::runtime_error("capacity too large for DP table; use a smaller dataset");
+        throw runtime_error("capacity too large for DP table; use a smaller dataset");
     }
 
-    const auto capacity = static_cast<std::size_t>(instance.capacity);
-    std::vector<ll> dp(capacity + 1, 0);
-    std::vector<std::vector<unsigned char>> keep(
+    const auto capacity = static_cast<size_t>(instance.capacity);
+    vector<ll> dp(capacity + 1, 0);
+    vector<vector<unsigned char>> keep(
         instance.items.size(),
-        std::vector<unsigned char>(capacity + 1, 0)
+        vector<unsigned char>(capacity + 1, 0)
     );
 
-    for (std::size_t i = 0; i < instance.items.size(); ++i) {
+    for (size_t i = 0; i < instance.items.size(); ++i) {
         const Item& item = instance.items[i];
         if (item.weight > instance.capacity) {
             continue;
         }
-        const auto weight = static_cast<std::size_t>(item.weight);
-        for (std::size_t c = capacity + 1; c-- > weight;) {
+        const auto weight = static_cast<size_t>(item.weight);
+        for (size_t c = capacity + 1; c-- > weight;) {
             const ll candidate = dp[c - weight] + item.value;
             if (candidate > dp[c]) {
                 dp[c] = candidate;
@@ -544,25 +546,25 @@ static Solution solveDynamicProgramming(const Instance& instance) {
     Solution solution;
     solution.algorithm = "dynamic_programming";
     solution.optimal = true;
-    solution.details = "states=" + std::to_string(instance.items.size() * (capacity + 1)) +
-                       ";rolling_array_size=" + std::to_string(capacity + 1);
+    solution.details = "states=" + to_string(instance.items.size() * (capacity + 1)) +
+                       ";rolling_array_size=" + to_string(capacity + 1);
 
-    std::size_t c = capacity;
-    for (std::size_t i = instance.items.size(); i-- > 0;) {
+    size_t c = capacity;
+    for (size_t i = instance.items.size(); i-- > 0;) {
         if (keep[i][c] != 0) {
             const Item& item = instance.items[i];
             solution.selectedItems.push_back(item.index);
-            c -= static_cast<std::size_t>(item.weight);
+            c -= static_cast<size_t>(item.weight);
         }
     }
-    std::sort(solution.selectedItems.begin(), solution.selectedItems.end());
+    sort(solution.selectedItems.begin(), solution.selectedItems.end());
 
-    std::vector<char> selected(instance.items.size() + 1, 0);
+    vector<char> selected(instance.items.size() + 1, 0);
     for (int index : solution.selectedItems) {
-        selected[static_cast<std::size_t>(index)] = 1;
+        selected[static_cast<size_t>(index)] = 1;
     }
     for (const Item& item : instance.items) {
-        if (selected[static_cast<std::size_t>(item.index)] != 0) {
+        if (selected[static_cast<size_t>(item.index)] != 0) {
             solution.weight += item.weight;
             solution.value += item.value;
         }
@@ -573,14 +575,14 @@ static Solution solveDynamicProgramming(const Instance& instance) {
 }
 
 static Solution solveBacktracking(const Instance& instance) {
-    const std::vector<Item> items = sortedByRatio(instance.items);
+    const vector<Item> items = sortedByRatio(instance.items);
     Solution best;
     best.algorithm = "backtracking";
     best.optimal = true;
 
     ll nodes = 0;
     ll pruned = 0;
-    std::vector<int> currentSelected;
+    vector<int> currentSelected;
 
     auto dfs = [&](auto&& self, int level, ll currentWeight, ll currentValue) -> void {
         ++nodes;
@@ -616,8 +618,8 @@ static Solution solveBacktracking(const Instance& instance) {
     };
 
     dfs(dfs, 0, 0, 0);
-    std::sort(best.selectedItems.begin(), best.selectedItems.end());
-    best.details = "nodes=" + std::to_string(nodes) + ";pruned=" + std::to_string(pruned);
+    sort(best.selectedItems.begin(), best.selectedItems.end());
+    best.details = "nodes=" + to_string(nodes) + ";pruned=" + to_string(pruned);
     best.memoryBytes = sizeof(Item) * items.size() + sizeof(int) * items.size() * 2;
     return best;
 }
@@ -627,7 +629,7 @@ struct Node {
     ll value{};
     ll weight{};
     double bound{};
-    std::vector<int> selectedItems;
+    vector<int> selectedItems;
 };
 
 struct NodeLess {
@@ -637,8 +639,8 @@ struct NodeLess {
 };
 
 static Solution solveBranchBound(const Instance& instance) {
-    const std::vector<Item> items = sortedByRatio(instance.items);
-    std::priority_queue<Node, std::vector<Node>, NodeLess> queue;
+    const vector<Item> items = sortedByRatio(instance.items);
+    priority_queue<Node, vector<Node>, NodeLess> queue;
 
     Node start;
     start.bound = fractionalUpperBound(items, 0, instance.capacity, 0);
@@ -650,10 +652,10 @@ static Solution solveBranchBound(const Instance& instance) {
 
     ll nodes = 0;
     ll pruned = 0;
-    std::size_t maxQueueSize = 1;
+    size_t maxQueueSize = 1;
 
     while (!queue.empty()) {
-        maxQueueSize = std::max(maxQueueSize, queue.size());
+        maxQueueSize = max(maxQueueSize, queue.size());
         Node node = queue.top();
         queue.pop();
         ++nodes;
@@ -685,7 +687,7 @@ static Solution solveBranchBound(const Instance& instance) {
                 include.value
             );
             if (include.bound > static_cast<double>(best.value)) {
-                queue.push(std::move(include));
+                queue.push(move(include));
             } else {
                 ++pruned;
             }
@@ -700,48 +702,48 @@ static Solution solveBranchBound(const Instance& instance) {
             exclude.value
         );
         if (exclude.bound > static_cast<double>(best.value)) {
-            queue.push(std::move(exclude));
+            queue.push(move(exclude));
         } else {
             ++pruned;
         }
     }
 
-    std::sort(best.selectedItems.begin(), best.selectedItems.end());
-    best.details = "nodes=" + std::to_string(nodes) +
-                   ";pruned=" + std::to_string(pruned) +
-                   ";max_queue_size=" + std::to_string(maxQueueSize);
+    sort(best.selectedItems.begin(), best.selectedItems.end());
+    best.details = "nodes=" + to_string(nodes) +
+                   ";pruned=" + to_string(pruned) +
+                   ";max_queue_size=" + to_string(maxQueueSize);
     best.memoryBytes = sizeof(Item) * items.size() +
                        maxQueueSize * (sizeof(Node) + sizeof(int) * items.size());
     return best;
 }
 
 static void validateSolution(const Instance& instance, const Solution& solution) {
-    std::vector<char> seen(instance.items.size() + 1, 0);
+    vector<char> seen(instance.items.size() + 1, 0);
     ll weight = 0;
     ll value = 0;
 
     for (int index : solution.selectedItems) {
         if (index <= 0 || index > static_cast<int>(instance.items.size())) {
-            throw std::runtime_error(solution.algorithm + " selected invalid item index");
+            throw runtime_error(solution.algorithm + " selected invalid item index");
         }
-        if (seen[static_cast<std::size_t>(index)] != 0) {
-            throw std::runtime_error(solution.algorithm + " selected duplicate item");
+        if (seen[static_cast<size_t>(index)] != 0) {
+            throw runtime_error(solution.algorithm + " selected duplicate item");
         }
-        seen[static_cast<std::size_t>(index)] = 1;
-        const Item& item = instance.items[static_cast<std::size_t>(index - 1)];
+        seen[static_cast<size_t>(index)] = 1;
+        const Item& item = instance.items[static_cast<size_t>(index - 1)];
         weight += item.weight;
         value += item.value;
     }
 
     if (weight != solution.weight || value != solution.value) {
-        throw std::runtime_error(solution.algorithm + " value/weight mismatch");
+        throw runtime_error(solution.algorithm + " value/weight mismatch");
     }
     if (weight > instance.capacity) {
-        throw std::runtime_error(solution.algorithm + " exceeds capacity");
+        throw runtime_error(solution.algorithm + " exceeds capacity");
     }
 }
 
-static Solution runAlgorithm(const std::string& name, const Instance& instance) {
+static Solution runAlgorithm(const string& name, const Instance& instance) {
     if (name == "greedy") {
         return solveGreedy(instance);
     }
@@ -754,13 +756,13 @@ static Solution runAlgorithm(const std::string& name, const Instance& instance) 
     if (name == "branch_bound") {
         return solveBranchBound(instance);
     }
-    throw std::runtime_error("unknown algorithm: " + name);
+    throw runtime_error("unknown algorithm: " + name);
 }
 
 static Record makeSkippedRecord(
     const Instance& instance,
-    const std::string& algorithm,
-    const std::string& reason
+    const string& algorithm,
+    const string& reason
 ) {
     Record record;
     record.source = instance.source;
@@ -777,10 +779,10 @@ static Record makeSkippedRecord(
     return record;
 }
 
-static Record runOne(const Instance& instance, const std::string& algorithm) {
-    const auto start = std::chrono::high_resolution_clock::now();
+static Record runOne(const Instance& instance, const string& algorithm) {
+    const auto start = chrono::high_resolution_clock::now();
     Solution solution = runAlgorithm(algorithm, instance);
-    const auto finish = std::chrono::high_resolution_clock::now();
+    const auto finish = chrono::high_resolution_clock::now();
     validateSolution(instance, solution);
 
     Record record;
@@ -796,58 +798,58 @@ static Record runOne(const Instance& instance, const std::string& algorithm) {
     record.value = solution.value;
     record.weight = solution.weight;
     record.selectedItems = solution.selectedItems;
-    record.timeMs = std::chrono::duration<double, std::milli>(finish - start).count();
+    record.timeMs = chrono::duration<double, milli>(finish - start).count();
     record.memoryKb = static_cast<double>(solution.memoryBytes) / 1024.0;
     record.optimal = solution.optimal;
     record.details = solution.details;
     return record;
 }
 
-static std::unordered_map<std::string, ll> loadJjOptima(const fs::path& optimaPath) {
-    std::unordered_map<std::string, ll> optima;
-    std::ifstream file(optimaPath);
+static unordered_map<string, ll> loadJjOptima(const fs::path& optimaPath) {
+    unordered_map<string, ll> optima;
+    ifstream file(optimaPath);
     if (!file) {
         return optima;
     }
 
-    std::string line;
-    std::getline(file, line);
-    while (std::getline(file, line)) {
+    string line;
+    getline(file, line);
+    while (getline(file, line)) {
         line = trim(line);
         if (line.empty()) {
             continue;
         }
 
         const auto comma = line.find(',');
-        if (comma == std::string::npos) {
+        if (comma == string::npos) {
             continue;
         }
-        const std::string name = trim(line.substr(0, comma));
-        const ll value = std::stoll(trim(line.substr(comma + 1)));
+        const string name = trim(line.substr(0, comma));
+        const ll value = stoll(trim(line.substr(comma + 1)));
         optima[name] = value;
     }
     return optima;
 }
 
-static void appendSimpleInstances(std::vector<Instance>& instances, const fs::path& dataDir) {
+static void appendSimpleInstances(vector<Instance>& instances, const fs::path& dataDir) {
     if (!fs::exists(dataDir)) {
         return;
     }
 
-    std::vector<fs::path> paths;
+    vector<fs::path> paths;
     for (const auto& entry : fs::directory_iterator(dataDir)) {
         if (entry.is_regular_file() && entry.path().extension() == ".txt") {
             paths.push_back(entry.path());
         }
     }
-    std::sort(paths.begin(), paths.end());
+    sort(paths.begin(), paths.end());
     for (const auto& path : paths) {
         instances.push_back(readSimpleInstance(path));
     }
 }
 
 static void appendUnicaucaGroup(
-    std::vector<Instance>& instances,
+    vector<Instance>& instances,
     const fs::path& instanceDir,
     const fs::path& optimumDir
 ) {
@@ -855,52 +857,52 @@ static void appendUnicaucaGroup(
         return;
     }
 
-    std::vector<fs::path> paths;
+    vector<fs::path> paths;
     for (const auto& entry : fs::directory_iterator(instanceDir)) {
         if (entry.is_regular_file()) {
             paths.push_back(entry.path());
         }
     }
-    std::sort(paths.begin(), paths.end());
+    sort(paths.begin(), paths.end());
 
     for (const auto& path : paths) {
         instances.push_back(readUnicaucaInstance(path, optimumDir / path.filename()));
     }
 }
 
-static void appendUnicaucaInstances(std::vector<Instance>& instances, const fs::path& uuDir) {
+static void appendUnicaucaInstances(vector<Instance>& instances, const fs::path& uuDir) {
     appendUnicaucaGroup(instances, uuDir / "low-dimensional", uuDir / "low-dimensional-optimum");
     appendUnicaucaGroup(instances, uuDir / "large_scale", uuDir / "large_scale-optimum");
 }
 
-static void appendJjInstances(std::vector<Instance>& instances, const fs::path& jjRoot) {
+static void appendJjInstances(vector<Instance>& instances, const fs::path& jjRoot) {
     const fs::path problemDir = jjRoot / "problemInstances";
     if (!fs::exists(problemDir)) {
         return;
     }
 
     const auto optima = loadJjOptima(jjRoot / "optima.csv");
-    std::vector<fs::path> paths;
+    vector<fs::path> paths;
     for (const auto& entry : fs::recursive_directory_iterator(problemDir)) {
         if (entry.is_regular_file() && entry.path().filename() == "test.in") {
             paths.push_back(entry.path());
         }
     }
-    std::sort(paths.begin(), paths.end());
+    sort(paths.begin(), paths.end());
 
     for (const auto& path : paths) {
         instances.push_back(readJjInstance(path, optima));
     }
 }
 
-static std::vector<Instance> loadInstances(
-    const std::string& dataDir,
-    const std::string& uuDir,
-    const std::string& jjRoot,
-    const std::vector<std::string>& explicitFiles,
+static vector<Instance> loadInstances(
+    const string& dataDir,
+    const string& uuDir,
+    const string& jjRoot,
+    const vector<string>& explicitFiles,
     bool allSources
 ) {
-    std::vector<Instance> instances;
+    vector<Instance> instances;
 
     if (!explicitFiles.empty()) {
         for (const auto& file : explicitFiles) {
@@ -916,21 +918,21 @@ static std::vector<Instance> loadInstances(
     }
 
     if (instances.empty()) {
-        throw std::runtime_error("no dataset files found");
+        throw runtime_error("no dataset files found");
     }
     return instances;
 }
 
-static std::vector<Record> runExperiment(
-    const std::vector<Instance>& instances,
-    const std::vector<std::string>& algorithms,
+static vector<Record> runExperiment(
+    const vector<Instance>& instances,
+    const vector<string>& algorithms,
     int maxExactItems,
     long double maxDpStates
 ) {
-    std::vector<Record> records;
+    vector<Record> records;
 
     for (const Instance& instance : instances) {
-        std::vector<std::size_t> rowIndexes;
+        vector<size_t> rowIndexes;
 
         for (const auto& algorithm : algorithms) {
             rowIndexes.push_back(records.size());
@@ -941,7 +943,7 @@ static std::vector<Record> runExperiment(
                     records.push_back(makeSkippedRecord(
                         instance,
                         algorithm,
-                        "states>" + std::to_string(static_cast<ll>(maxDpStates)) +
+                        "states>" + to_string(static_cast<ll>(maxDpStates)) +
                             "; use --max-dp-states to run"
                     ));
                     continue;
@@ -953,7 +955,7 @@ static std::vector<Record> runExperiment(
                 records.push_back(makeSkippedRecord(
                     instance,
                     algorithm,
-                    "n>" + std::to_string(maxExactItems) +
+                    "n>" + to_string(maxExactItems) +
                         "; use --max-exact-items to run"
                 ));
                 continue;
@@ -962,14 +964,14 @@ static std::vector<Record> runExperiment(
         }
 
         ll reference = instance.knownOptimum > 0 ? instance.knownOptimum : 0;
-        for (std::size_t index : rowIndexes) {
+        for (size_t index : rowIndexes) {
             const Record& record = records[index];
             if (record.status == "ok" && record.optimal) {
-                reference = std::max(reference, record.value);
+                reference = max(reference, record.value);
             }
         }
 
-        for (std::size_t index : rowIndexes) {
+        for (size_t index : rowIndexes) {
             Record& record = records[index];
             record.referenceOptimum = reference;
             if (record.status == "ok" && reference > 0) {
@@ -982,10 +984,10 @@ static std::vector<Record> runExperiment(
     return records;
 }
 
-static void writeCsv(const std::vector<Record>& records, const fs::path& path) {
-    std::ofstream file(path);
+static void writeCsv(const vector<Record>& records, const fs::path& path) {
+    ofstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot write " + path.string());
+        throw runtime_error("cannot write " + path.string());
     }
 
     file.write("\xEF\xBB\xBF", 3);
@@ -1004,8 +1006,8 @@ static void writeCsv(const std::vector<Record>& records, const fs::path& path) {
             file << formatScaled(record.value, record.valueScale) << ','
                  << formatScaled(record.weight, record.weightScale) << ','
                  << csvEscape(joinIndexes(record.selectedItems)) << ','
-                 << std::fixed << std::setprecision(4) << record.timeMs << ','
-                 << std::fixed << std::setprecision(3) << record.memoryKb << ','
+                 << fixed << setprecision(4) << record.timeMs << ','
+                 << fixed << setprecision(3) << record.memoryKb << ','
                  << (record.optimal ? "true" : "false") << ','
                  << (record.referenceOptimum > 0 ? formatScaled(record.referenceOptimum, record.valueScale) : "") << ','
                  << formatRatio(record.qualityRatio) << ','
@@ -1019,8 +1021,8 @@ static void writeCsv(const std::vector<Record>& records, const fs::path& path) {
     }
 }
 
-static std::string jsonString(const std::string& value) {
-    std::string result = "\"";
+static string jsonString(const string& value) {
+    string result = "\"";
     for (char ch : value) {
         switch (ch) {
             case '\\':
@@ -1047,14 +1049,14 @@ static std::string jsonString(const std::string& value) {
     return result;
 }
 
-static void writeJson(const std::vector<Record>& records, const fs::path& path) {
-    std::ofstream file(path);
+static void writeJson(const vector<Record>& records, const fs::path& path) {
+    ofstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot write " + path.string());
+        throw runtime_error("cannot write " + path.string());
     }
 
     file << "[\n";
-    for (std::size_t i = 0; i < records.size(); ++i) {
+    for (size_t i = 0; i < records.size(); ++i) {
         const Record& record = records[i];
         file << "  {\n";
         file << "    \"source\": " << jsonString(record.source) << ",\n";
@@ -1069,15 +1071,15 @@ static void writeJson(const std::vector<Record>& records, const fs::path& path) 
         file << "    \"value\": " << formatScaled(record.value, record.valueScale) << ",\n";
         file << "    \"weight\": " << formatScaled(record.weight, record.weightScale) << ",\n";
         file << "    \"selected_items\": [";
-        for (std::size_t j = 0; j < record.selectedItems.size(); ++j) {
+        for (size_t j = 0; j < record.selectedItems.size(); ++j) {
             if (j > 0) {
                 file << ", ";
             }
             file << record.selectedItems[j];
         }
         file << "],\n";
-        file << "    \"time_ms\": " << std::fixed << std::setprecision(4) << record.timeMs << ",\n";
-        file << "    \"estimated_memory_kb\": " << std::fixed << std::setprecision(3) << record.memoryKb << ",\n";
+        file << "    \"time_ms\": " << fixed << setprecision(4) << record.timeMs << ",\n";
+        file << "    \"estimated_memory_kb\": " << fixed << setprecision(3) << record.memoryKb << ",\n";
         file << "    \"optimal\": " << (record.optimal ? "true" : "false") << ",\n";
         file << "    \"reference_optimum\": "
              << (record.referenceOptimum > 0 ? formatScaled(record.referenceOptimum, record.valueScale) : "null")
@@ -1091,10 +1093,10 @@ static void writeJson(const std::vector<Record>& records, const fs::path& path) 
     file << "]\n";
 }
 
-static void writeSummary(const std::vector<Record>& records, const fs::path& path) {
-    std::ofstream file(path);
+static void writeSummary(const vector<Record>& records, const fs::path& path) {
+    ofstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot write " + path.string());
+        throw runtime_error("cannot write " + path.string());
     }
 
     file << "# Knapsack Experiment Summary\n\n";
@@ -1111,8 +1113,8 @@ static void writeSummary(const std::vector<Record>& records, const fs::path& pat
         if (record.status == "ok") {
             file << formatScaled(record.value, record.valueScale)
                  << " | " << formatScaled(record.weight, record.weightScale)
-                 << " | " << std::fixed << std::setprecision(4) << record.timeMs
-                 << " | " << std::fixed << std::setprecision(3) << record.memoryKb
+                 << " | " << fixed << setprecision(4) << record.timeMs
+                 << " | " << fixed << setprecision(3) << record.memoryKb
                  << " | " << formatRatio(record.qualityRatio)
                  << " | " << joinIndexes(record.selectedItems)
                  << " |\n";
@@ -1122,7 +1124,7 @@ static void writeSummary(const std::vector<Record>& records, const fs::path& pat
     }
 }
 
-static double metricValue(const Record& record, const std::string& metric) {
+static double metricValue(const Record& record, const string& metric) {
     if (record.status != "ok") {
         return 0.0;
     }
@@ -1139,30 +1141,30 @@ static double metricValue(const Record& record, const std::string& metric) {
 }
 
 static void writeSvgChart(
-    const std::vector<Record>& records,
+    const vector<Record>& records,
     const fs::path& path,
-    const std::string& metric,
-    const std::string& title,
-    const std::string& yLabel,
+    const string& metric,
+    const string& title,
+    const string& yLabel,
     bool logScale
 ) {
-    std::vector<std::string> rawDatasets;
+    vector<string> rawDatasets;
     for (const Record& record : records) {
         if (metric == "quality_ratio" && record.qualityRatio < 0.0) {
             continue;
         }
         if (record.status == "ok" &&
-            std::find(rawDatasets.begin(), rawDatasets.end(), record.dataset) == rawDatasets.end()) {
+            find(rawDatasets.begin(), rawDatasets.end(), record.dataset) == rawDatasets.end()) {
             rawDatasets.push_back(record.dataset);
         }
     }
     const bool aggregateBySource = rawDatasets.size() > 40;
 
-    std::vector<std::string> datasets;
-    std::vector<std::string> algorithms;
-    std::unordered_map<std::string, double> sums;
-    std::unordered_map<std::string, int> counts;
-    std::unordered_map<std::string, double> values;
+    vector<string> datasets;
+    vector<string> algorithms;
+    unordered_map<string, double> sums;
+    unordered_map<string, int> counts;
+    unordered_map<string, double> values;
 
     for (const Record& record : records) {
         if (record.status != "ok") {
@@ -1171,14 +1173,14 @@ static void writeSvgChart(
         if (metric == "quality_ratio" && record.qualityRatio < 0.0) {
             continue;
         }
-        const std::string group = aggregateBySource ? record.source : record.dataset;
-        if (std::find(datasets.begin(), datasets.end(), group) == datasets.end()) {
+        const string group = aggregateBySource ? record.source : record.dataset;
+        if (find(datasets.begin(), datasets.end(), group) == datasets.end()) {
             datasets.push_back(group);
         }
-        if (std::find(algorithms.begin(), algorithms.end(), record.algorithm) == algorithms.end()) {
+        if (find(algorithms.begin(), algorithms.end(), record.algorithm) == algorithms.end()) {
             algorithms.push_back(record.algorithm);
         }
-        const std::string key = group + "\t" + record.algorithm;
+        const string key = group + "\t" + record.algorithm;
         sums[key] += metricValue(record, metric);
         counts[key] += 1;
     }
@@ -1191,11 +1193,11 @@ static void writeSvgChart(
 
     double maxValue = 1.0;
     for (const auto& entry : values) {
-        const double transformed = logScale ? std::log10(entry.second + 1.0) : entry.second;
-        maxValue = std::max(maxValue, transformed);
+        const double transformed = logScale ? log10(entry.second + 1.0) : entry.second;
+        maxValue = max(maxValue, transformed);
     }
 
-    const int width = std::max(760, 190 * static_cast<int>(datasets.size()));
+    const int width = max(760, 190 * static_cast<int>(datasets.size()));
     const int height = 430;
     const int marginLeft = 70;
     const int marginRight = 24;
@@ -1204,9 +1206,9 @@ static void writeSvgChart(
     const double plotWidth = width - marginLeft - marginRight;
     const double plotHeight = height - marginTop - marginBottom;
     const double groupWidth = plotWidth / static_cast<double>(datasets.size());
-    const double barWidth = std::min(28.0, groupWidth / static_cast<double>(algorithms.size()) - 8.0);
+    const double barWidth = min(28.0, groupWidth / static_cast<double>(algorithms.size()) - 8.0);
 
-    const std::unordered_map<std::string, std::string> colors = {
+    const unordered_map<string, string> colors = {
         {"greedy", "#3366cc"},
         {"dynamic_programming", "#dc3912"},
         {"backtracking", "#ff9900"},
@@ -1214,23 +1216,23 @@ static void writeSvgChart(
     };
 
     auto yFor = [&](double value) {
-        const double transformed = logScale ? std::log10(value + 1.0) : value;
+        const double transformed = logScale ? log10(value + 1.0) : value;
         return marginTop + plotHeight - transformed / maxValue * plotHeight;
     };
 
     auto fmt = [&](double value) {
-        std::ostringstream out;
+        ostringstream out;
         if (metric == "quality_ratio") {
-            out << std::fixed << std::setprecision(2) << value;
+            out << fixed << setprecision(2) << value;
         } else {
-            out << std::fixed << std::setprecision(2) << value;
+            out << fixed << setprecision(2) << value;
         }
         return out.str();
     };
 
-    std::ofstream file(path);
+    ofstream file(path);
     if (!file) {
-        throw std::runtime_error("cannot write " + path.string());
+        throw runtime_error("cannot write " + path.string());
     }
 
     file << "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << width
@@ -1253,7 +1255,7 @@ static void writeSvgChart(
     for (int tick = 0; tick <= 5; ++tick) {
         const double transformedTick = maxValue * tick / 5.0;
         const double y = marginTop + plotHeight - transformedTick / maxValue * plotHeight;
-        const double displayValue = logScale ? std::pow(10.0, transformedTick) - 1.0 : transformedTick;
+        const double displayValue = logScale ? pow(10.0, transformedTick) - 1.0 : transformedTick;
         file << "<line x1=\"" << marginLeft - 4 << "\" y1=\"" << y
              << "\" x2=\"" << width - marginRight << "\" y2=\"" << y
              << "\" stroke=\"#e6e6e6\"/>\n";
@@ -1262,8 +1264,8 @@ static void writeSvgChart(
              << fmt(displayValue) << "</text>\n";
     }
 
-    for (std::size_t groupIndex = 0; groupIndex < datasets.size(); ++groupIndex) {
-        const std::string& dataset = datasets[groupIndex];
+    for (size_t groupIndex = 0; groupIndex < datasets.size(); ++groupIndex) {
+        const string& dataset = datasets[groupIndex];
         const double groupStart = marginLeft + groupIndex * groupWidth;
         const double groupCenter = groupStart + groupWidth / 2.0;
         file << "<text x=\"" << groupCenter << "\" y=\"" << height - 50
@@ -1277,7 +1279,7 @@ static void writeSvgChart(
             const double barTop = yFor(value);
             const double barHeight = marginTop + plotHeight - barTop;
             auto colorIt = colors.find(algorithm);
-            const std::string color = colorIt == colors.end() ? "#555555" : colorIt->second;
+            const string color = colorIt == colors.end() ? "#555555" : colorIt->second;
             file << "<rect x=\"" << x << "\" y=\"" << barTop << "\" width=\"" << barWidth
                  << "\" height=\"" << barHeight << "\" fill=\"" << color << "\"/>\n";
             file << "<text x=\"" << x + barWidth / 2.0 << "\" y=\"" << barTop - 5
@@ -1291,9 +1293,9 @@ static void writeSvgChart(
     const int legendY = height - 24;
     for (const auto& algorithm : algorithms) {
         auto colorIt = colors.find(algorithm);
-        const std::string color = colorIt == colors.end() ? "#555555" : colorIt->second;
-        std::string label = algorithm;
-        std::replace(label.begin(), label.end(), '_', ' ');
+        const string color = colorIt == colors.end() ? "#555555" : colorIt->second;
+        string label = algorithm;
+        replace(label.begin(), label.end(), '_', ' ');
         file << "<rect x=\"" << legendX << "\" y=\"" << legendY - 10
              << "\" width=\"12\" height=\"12\" fill=\"" << color << "\"/>\n";
         file << "<text x=\"" << legendX + 18 << "\" y=\"" << legendY
@@ -1305,7 +1307,7 @@ static void writeSvgChart(
     file << "</svg>\n";
 }
 
-static void writeOutputs(const std::vector<Record>& records, const fs::path& outDir) {
+static void writeOutputs(const vector<Record>& records, const fs::path& outDir) {
     fs::create_directories(outDir);
     writeCsv(records, outDir / "results.csv");
     writeJson(records, outDir / "results.json");
@@ -1336,48 +1338,48 @@ static void writeOutputs(const std::vector<Record>& records, const fs::path& out
     );
 }
 
-static void printTable(const std::vector<Record>& records) {
-    std::cout << std::left << std::setw(22) << "source"
-              << std::setw(42) << "dataset"
-              << std::setw(22) << "algorithm"
-              << std::right << std::setw(9) << "value"
-              << std::setw(9) << "weight"
-              << std::setw(12) << "time_ms"
-              << std::setw(12) << "mem_kb"
-              << std::setw(10) << "quality" << '\n';
-    std::cout << std::string(130, '-') << '\n';
+static void printTable(const vector<Record>& records) {
+    cout << left << setw(22) << "source"
+              << setw(42) << "dataset"
+              << setw(22) << "algorithm"
+              << right << setw(9) << "value"
+              << setw(9) << "weight"
+              << setw(12) << "time_ms"
+              << setw(12) << "mem_kb"
+              << setw(10) << "quality" << '\n';
+    cout << string(130, '-') << '\n';
 
-    const std::size_t maxConsoleRows = 200;
-    for (std::size_t i = 0; i < records.size() && i < maxConsoleRows; ++i) {
+    const size_t maxConsoleRows = 200;
+    for (size_t i = 0; i < records.size() && i < maxConsoleRows; ++i) {
         const Record& record = records[i];
-        std::string source = record.source;
+        string source = record.source;
         if (source.size() > 20) {
             source = source.substr(0, 19) + "~";
         }
-        std::string dataset = record.dataset;
+        string dataset = record.dataset;
         if (dataset.size() > 40) {
             dataset = dataset.substr(0, 39) + "~";
         }
-        std::cout << std::left << std::setw(22) << source
-                  << std::setw(42) << dataset
-                  << std::setw(22) << record.algorithm;
+        cout << left << setw(22) << source
+                  << setw(42) << dataset
+                  << setw(22) << record.algorithm;
         if (record.status == "ok") {
-            std::cout << std::right << std::setw(9) << formatScaled(record.value, record.valueScale)
-                      << std::setw(9) << formatScaled(record.weight, record.weightScale)
-                      << std::setw(12) << std::fixed << std::setprecision(4) << record.timeMs
-                      << std::setw(12) << std::fixed << std::setprecision(3) << record.memoryKb
-                      << std::setw(10) << (record.qualityRatio >= 0.0 ? formatRatio(record.qualityRatio).substr(0, 6) : "-")
+            cout << right << setw(9) << formatScaled(record.value, record.valueScale)
+                      << setw(9) << formatScaled(record.weight, record.weightScale)
+                      << setw(12) << fixed << setprecision(4) << record.timeMs
+                      << setw(12) << fixed << setprecision(3) << record.memoryKb
+                      << setw(10) << (record.qualityRatio >= 0.0 ? formatRatio(record.qualityRatio).substr(0, 6) : "-")
                       << '\n';
         } else {
-            std::cout << std::right << std::setw(9) << "-"
-                      << std::setw(9) << "-"
-                      << std::setw(12) << "-"
-                      << std::setw(12) << "-"
-                      << std::setw(10) << "skipped" << '\n';
+            cout << right << setw(9) << "-"
+                      << setw(9) << "-"
+                      << setw(12) << "-"
+                      << setw(12) << "-"
+                      << setw(10) << "skipped" << '\n';
         }
     }
     if (records.size() > maxConsoleRows) {
-        std::cout << "... " << (records.size() - maxConsoleRows)
+        cout << "... " << (records.size() - maxConsoleRows)
                   << " more rows written to the result files\n";
     }
 }
@@ -1392,7 +1394,7 @@ static void runSelfTest() {
         {3, 30, 120}
     };
 
-    const std::vector<std::string> exactAlgorithms = {
+    const vector<string> exactAlgorithms = {
         "dynamic_programming",
         "backtracking",
         "branch_bound"
@@ -1401,20 +1403,20 @@ static void runSelfTest() {
         Solution solution = runAlgorithm(algorithm, instance);
         validateSolution(instance, solution);
         if (solution.value != 220) {
-            throw std::runtime_error(algorithm + " self-test failed");
+            throw runtime_error(algorithm + " self-test failed");
         }
     }
 
     Solution greedy = solveGreedy(instance);
     validateSolution(instance, greedy);
     if (greedy.value != 160) {
-        throw std::runtime_error("greedy self-test failed");
+        throw runtime_error("greedy self-test failed");
     }
-    std::cout << "self-test passed\n";
+    cout << "self-test passed\n";
 }
 
 static void printUsage() {
-    std::cout
+    cout
         << "Usage:\n"
         << "  knapsack_experiment [options]\n\n"
         << "Options:\n"
@@ -1433,12 +1435,12 @@ static void printUsage() {
 }
 
 int main(int argc, char* argv[]) {
-    std::string dataDir = "data";
-    std::string uuDir = "data/_raw/uu";
-    std::string jjRoot = "data/_raw/jj_extract/knapsackProblemInstances-master";
-    std::string outDir = "experiments";
-    std::vector<std::string> explicitFiles;
-    std::vector<std::string> algorithms = {
+    string dataDir = "data";
+    string uuDir = "data/_raw/uu";
+    string jjRoot = "data/_raw/jj_extract/knapsackProblemInstances-master";
+    string outDir = "experiments";
+    vector<string> explicitFiles;
+    vector<string> algorithms = {
         "greedy",
         "dynamic_programming",
         "backtracking",
@@ -1451,7 +1453,7 @@ int main(int argc, char* argv[]) {
 
     try {
         for (int i = 1; i < argc; ++i) {
-            const std::string arg = argv[i];
+            const string arg = argv[i];
             if (arg == "--help" || arg == "-h") {
                 printUsage();
                 return 0;
@@ -1473,7 +1475,7 @@ int main(int argc, char* argv[]) {
             } else if (arg == "--instance" && i + 1 < argc) {
                 explicitFiles.push_back(argv[++i]);
             } else if (arg == "--algorithm" && i + 1 < argc) {
-                const std::string name = argv[++i];
+                const string name = argv[++i];
                 if (name == "all") {
                     algorithms = {"greedy", "dynamic_programming", "backtracking", "branch_bound"};
                 } else if (
@@ -1491,14 +1493,14 @@ int main(int argc, char* argv[]) {
                     }
                     algorithms.push_back(name);
                 } else {
-                    throw std::runtime_error("unknown algorithm: " + name);
+                    throw runtime_error("unknown algorithm: " + name);
                 }
             } else if ((arg == "--max-exact-items" || arg == "--max-backtracking-items") && i + 1 < argc) {
-                maxExactItems = std::stoi(argv[++i]);
+                maxExactItems = stoi(argv[++i]);
             } else if (arg == "--max-dp-states" && i + 1 < argc) {
-                maxDpStates = std::stold(argv[++i]);
+                maxDpStates = stold(argv[++i]);
             } else {
-                throw std::runtime_error("unknown or incomplete option: " + arg);
+                throw runtime_error("unknown or incomplete option: " + arg);
             }
         }
 
@@ -1507,14 +1509,14 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
-        const std::vector<Instance> instances = loadInstances(
+        const vector<Instance> instances = loadInstances(
             dataDir,
             uuDir,
             jjRoot,
             explicitFiles,
             allSources
         );
-        const std::vector<Record> records = runExperiment(
+        const vector<Record> records = runExperiment(
             instances,
             algorithms,
             maxExactItems,
@@ -1522,10 +1524,10 @@ int main(int argc, char* argv[]) {
         );
         writeOutputs(records, outDir);
         printTable(records);
-        std::cout << "\ninstances loaded: " << instances.size() << '\n';
-        std::cout << "\noutputs written to: " << fs::absolute(outDir).string() << '\n';
-    } catch (const std::exception& ex) {
-        std::cerr << "error: " << ex.what() << '\n';
+        cout << "\ninstances loaded: " << instances.size() << '\n';
+        cout << "\noutputs written to: " << fs::absolute(outDir).string() << '\n';
+    } catch (const exception& ex) {
+        cerr << "error: " << ex.what() << '\n';
         return 1;
     }
 
