@@ -1,0 +1,4 @@
+学号 姓名 分工
+3024244214 Xu Xinghan DP greedy
+3024244217 Ma Ning backtracking
+3024244167 Zhang Jie branch and bound

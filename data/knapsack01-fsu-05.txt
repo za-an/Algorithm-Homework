@@ -1,0 +1,14 @@
+# source: Florida State University KNAPSACK_01 P05
+# url: https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+# original files: p05_c.txt, p05_w.txt, p05_p.txt, p05_s.txt
+# optimal selection from source: 1 0 1 1 1 0 1 1
+# optimal value: 900
+8 104
+25 350
+35 400
+45 450
+5 20
+25 70
+3 8
+2 5
+2 5

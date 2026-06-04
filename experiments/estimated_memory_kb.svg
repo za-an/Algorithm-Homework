@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="430" viewBox="0 0 760 430">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="380" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700">Estimated Memory by Algorithm</text>
+<text x="16" y="197" transform="rotate(-90 16 197)" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">KB</text>
+<line x1="70" y1="342" x2="736" y2="342" stroke="#222"/>
+<line x1="70" y1="52" x2="70" y2="342" stroke="#222"/>
+<line x1="66" y1="342" x2="736" y2="342" stroke="#e6e6e6"/>
+<text x="62" y="346" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">0.00</text>
+<line x1="66" y1="284" x2="736" y2="284" stroke="#e6e6e6"/>
+<text x="62" y="288" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">2136.88</text>
+<line x1="66" y1="226" x2="736" y2="226" stroke="#e6e6e6"/>
+<text x="62" y="230" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">4273.76</text>
+<line x1="66" y1="168" x2="736" y2="168" stroke="#e6e6e6"/>
+<text x="62" y="172" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">6410.64</text>
+<line x1="66" y1="110" x2="736" y2="110" stroke="#e6e6e6"/>
+<text x="62" y="114" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">8547.52</text>
+<line x1="66" y1="52" x2="736" y2="52" stroke="#e6e6e6"/>
+<text x="62" y="56" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#333">10684.39</text>
+<text x="153.25" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">FSU KNAPSACK_01</text>
+<rect x="88.25" y="341.986" width="28" height="0.0136507" fill="#3366cc"/>
+<text x="102.25" y="336.986" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.50</text>
+<rect x="122.25" y="341.893" width="28" height="0.107146" fill="#dc3912"/>
+<text x="136.25" y="336.893" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">3.95</text>
+<rect x="156.25" y="341.991" width="28" height="0.00869405" fill="#ff9900"/>
+<text x="170.25" y="336.991" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.32</text>
+<rect x="190.25" y="341.942" width="28" height="0.0578631" fill="#109618"/>
+<text x="204.25" y="336.942" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">2.13</text>
+<text x="319.75" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">JorikJooken</text>
+<rect x="254.75" y="340.96" width="28" height="1.04041" fill="#3366cc"/>
+<text x="268.75" y="335.96" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">38.33</text>
+<rect x="288.75" y="342" width="28" height="0" fill="#dc3912"/>
+<text x="302.75" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.00</text>
+<rect x="322.75" y="342" width="28" height="0" fill="#ff9900"/>
+<text x="336.75" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.00</text>
+<rect x="356.75" y="342" width="28" height="0" fill="#109618"/>
+<text x="370.75" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.00</text>
+<text x="486.25" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Unicauca large_scale</text>
+<rect x="421.25" y="338.56" width="28" height="3.43982" fill="#3366cc"/>
+<text x="435.25" y="333.56" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">126.73</text>
+<rect x="455.25" y="200.885" width="28" height="141.115" fill="#dc3912"/>
+<text x="469.25" y="195.885" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">5199.08</text>
+<rect x="489.25" y="342" width="28" height="0" fill="#ff9900"/>
+<text x="503.25" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.00</text>
+<rect x="523.25" y="342" width="28" height="0" fill="#109618"/>
+<text x="537.25" y="337" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.00</text>
+<text x="652.75" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Unicauca low-dimensional</text>
+<rect x="587.75" y="341.984" width="28" height="0.0158507" fill="#3366cc"/>
+<text x="601.75" y="336.984" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.58</text>
+<rect x="621.75" y="340.918" width="28" height="1.08221" fill="#dc3912"/>
+<text x="635.75" y="335.918" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">39.87</text>
+<rect x="655.75" y="341.99" width="28" height="0.0100088" fill="#ff9900"/>
+<text x="669.75" y="336.99" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">0.37</text>
+<rect x="689.75" y="52" width="28" height="290" fill="#109618"/>
+<text x="703.75" y="47" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">10684.39</text>
+<rect x="70" y="396" width="12" height="12" fill="#3366cc"/>
+<text x="88" y="406" font-family="Arial, sans-serif" font-size="12">greedy</text>
+<rect x="230" y="396" width="12" height="12" fill="#dc3912"/>
+<text x="248" y="406" font-family="Arial, sans-serif" font-size="12">dynamic programming</text>
+<rect x="390" y="396" width="12" height="12" fill="#ff9900"/>
+<text x="408" y="406" font-family="Arial, sans-serif" font-size="12">backtracking</text>
+<rect x="550" y="396" width="12" height="12" fill="#109618"/>
+<text x="568" y="406" font-family="Arial, sans-serif" font-size="12">branch bound</text>
+</svg>

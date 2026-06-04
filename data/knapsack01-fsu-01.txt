@@ -1,0 +1,16 @@
+# source: Florida State University KNAPSACK_01 P01
+# url: https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+# original files: p01_c.txt, p01_w.txt, p01_p.txt, p01_s.txt
+# optimal selection from source: 1 1 1 1 0 1 0 0 0 0
+# optimal value: 309
+10 165
+23 92
+31 57
+29 49
+44 68
+53 60
+38 43
+63 67
+85 84
+89 87
+82 72

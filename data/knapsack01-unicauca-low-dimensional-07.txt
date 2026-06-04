@@ -1,0 +1,15 @@
+# source: Unicauca low-dimensional
+# original path: uu\low-dimensional\f6_l-d_kp_10_60
+# optimal value: 52
+# format: n capacity, then weight value
+10 60
+30 20
+25 18
+20 17
+18 15
+17 15
+11 10
+5 5
+2 3
+1 1
+1 1

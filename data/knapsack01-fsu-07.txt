@@ -1,0 +1,21 @@
+# source: Florida State University KNAPSACK_01 P07
+# url: https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+# original files: p07_c.txt, p07_w.txt, p07_p.txt, p07_s.txt
+# optimal selection from source: 1 0 1 0 1 0 1 1 1 0 0 0 0 1 1
+# optimal value: 1458
+15 750
+70 135
+73 139
+77 149
+80 150
+82 156
+87 163
+90 173
+94 184
+98 192
+106 201
+110 210
+113 214
+115 221
+118 229
+120 240

@@ -1,0 +1,11 @@
+# source: Florida State University KNAPSACK_01 P02
+# url: https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+# original files: p02_c.txt, p02_w.txt, p02_p.txt, p02_s.txt
+# optimal selection from source: 0 1 1 1 0
+# optimal value: 51
+5 26
+12 24
+7 13
+11 23
+8 15
+9 16

@@ -1,0 +1,15 @@
+# source: Unicauca low-dimensional
+# original path: uu\low-dimensional\f1_l-d_kp_10_269
+# optimal value: 295
+# format: n capacity, then weight value
+10 269
+95 55
+4 10
+60 47
+32 5
+23 4
+72 50
+80 8
+62 61
+65 85
+46 87

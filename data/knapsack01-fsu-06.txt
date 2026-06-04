@@ -1,0 +1,13 @@
+# source: Florida State University KNAPSACK_01 P06
+# url: https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+# original files: p06_c.txt, p06_w.txt, p06_p.txt, p06_s.txt
+# optimal selection from source: 0 1 0 1 0 0 1
+# optimal value: 1735
+7 170
+41 442
+50 525
+49 511
+59 593
+55 546
+57 564
+60 617
