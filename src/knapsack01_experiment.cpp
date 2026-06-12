@@ -1,3 +1,6 @@
+// 0/1 背包问题多算法对比实验主程序
+// 负责数据集读取、统一调度各算法、结果校验与导出（CSV/JSON/Markdown/SVG）
+// 算法实现见 greedy-knapsack01 / dp-knapsack01 / backtracking-knapsack01 / branch_bound-knapsack01
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -8,46 +11,38 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <queue>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "knapsack01_common.h"
+#include "greedy-knapsack01.h"
+#include "dp-knapsack01.h"
+#include "backtracking-knapsack01.h"
+#include "branch_bound-knapsack01.h"
+
 using namespace std;
 
-using ll = long long;
 namespace fs = filesystem;
 
-struct Item {
-    int index{};
-    ll weight{};
-    ll value{};
-
-    double ratio() const {
-        return static_cast<double>(value) / static_cast<double>(weight);
-    }
+static const vector<string> kDefaultAlgorithms = {
+    "greedy",
+    "dynamic_programming",
+    "dynamic_programming_2d",
+    "backtracking",
+    "branch_bound"
 };
 
-struct Instance {
-    string name;
-    string source;
-    ll capacity{};
-    ll knownOptimum{-1};
-    long double valueScale{1.0L};
-    long double weightScale{1.0L};
-    vector<Item> items;
-};
-
-struct Solution {
-    string algorithm;
-    ll value{};
-    ll weight{};
-    vector<int> selectedItems;
-    bool optimal{};
-    size_t memoryBytes{};
-    string details;
+static const vector<string> kKnownAlgorithms = {
+    "greedy",
+    "greedy_value",
+    "greedy_weight",
+    "dynamic_programming",
+    "dynamic_programming_2d",
+    "backtracking",
+    "branch_bound"
 };
 
 struct Record {
@@ -452,303 +447,21 @@ static Instance readJjInstance(
     return instance;
 }
 
-static vector<Item> sortedByRatio(const vector<Item>& items) {
-    vector<Item> sorted = items;
-    sort(sorted.begin(), sorted.end(), [](const Item& a, const Item& b) {
-        if (abs(a.ratio() - b.ratio()) > 1e-12) {
-            return a.ratio() > b.ratio();
-        }
-        if (a.value != b.value) {
-            return a.value > b.value;
-        }
-        if (a.weight != b.weight) {
-            return a.weight < b.weight;
-        }
-        return a.index < b.index;
-    });
-    return sorted;
-}
-
-static double fractionalUpperBound(
-    const vector<Item>& items,
-    int start,
-    ll capacityLeft,
-    ll currentValue
-) {
-    if (capacityLeft < 0) {
-        return -numeric_limits<double>::infinity();
-    }
-
-    double bound = static_cast<double>(currentValue);
-    ll remaining = capacityLeft;
-    for (int i = start; i < static_cast<int>(items.size()); ++i) {
-        const Item& item = items[i];
-        if (item.weight <= remaining) {
-            remaining -= item.weight;
-            bound += static_cast<double>(item.value);
-        } else {
-            bound += static_cast<double>(item.value) * static_cast<double>(remaining) /
-                     static_cast<double>(item.weight);
-            break;
-        }
-    }
-    return bound;
-}
-
-static Solution solveGreedy(const Instance& instance) {
-    Solution solution;
-    solution.algorithm = "greedy";
-    solution.optimal = false;
-    solution.details = "criterion=value/weight";
-
-    ll remaining = instance.capacity;
-    for (const Item& item : sortedByRatio(instance.items)) {
-        if (item.weight <= remaining) {
-            remaining -= item.weight;
-            solution.weight += item.weight;
-            solution.value += item.value;
-            solution.selectedItems.push_back(item.index);
-        }
-    }
-    sort(solution.selectedItems.begin(), solution.selectedItems.end());
-    solution.memoryBytes = sizeof(Item) * instance.items.size() * 2 +
-                           sizeof(int) * solution.selectedItems.size();
-    return solution;
-}
-
-static Solution solveDynamicProgramming(const Instance& instance) {
-    if (instance.capacity > 5000000) {
-        throw runtime_error("capacity too large for DP table; use a smaller dataset");
-    }
-
-    const auto capacity = static_cast<size_t>(instance.capacity);
-    vector<ll> dp(capacity + 1, 0);
-    vector<vector<unsigned char>> keep(
-        instance.items.size(),
-        vector<unsigned char>(capacity + 1, 0)
-    );
-
-    for (size_t i = 0; i < instance.items.size(); ++i) {
-        const Item& item = instance.items[i];
-        if (item.weight > instance.capacity) {
-            continue;
-        }
-        const auto weight = static_cast<size_t>(item.weight);
-        for (size_t c = capacity + 1; c-- > weight;) {
-            const ll candidate = dp[c - weight] + item.value;
-            if (candidate > dp[c]) {
-                dp[c] = candidate;
-                keep[i][c] = 1;
-            }
-        }
-    }
-
-    Solution solution;
-    solution.algorithm = "dynamic_programming";
-    solution.optimal = true;
-    solution.details = "states=" + to_string(instance.items.size() * (capacity + 1)) +
-                       ";rolling_array_size=" + to_string(capacity + 1);
-
-    size_t c = capacity;
-    for (size_t i = instance.items.size(); i-- > 0;) {
-        if (keep[i][c] != 0) {
-            const Item& item = instance.items[i];
-            solution.selectedItems.push_back(item.index);
-            c -= static_cast<size_t>(item.weight);
-        }
-    }
-    sort(solution.selectedItems.begin(), solution.selectedItems.end());
-
-    vector<char> selected(instance.items.size() + 1, 0);
-    for (int index : solution.selectedItems) {
-        selected[static_cast<size_t>(index)] = 1;
-    }
-    for (const Item& item : instance.items) {
-        if (selected[static_cast<size_t>(item.index)] != 0) {
-            solution.weight += item.weight;
-            solution.value += item.value;
-        }
-    }
-    solution.memoryBytes = sizeof(ll) * dp.size() +
-                           sizeof(unsigned char) * keep.size() * (capacity + 1);
-    return solution;
-}
-
-static Solution solveBacktracking(const Instance& instance) {
-    const vector<Item> items = sortedByRatio(instance.items);
-    Solution best;
-    best.algorithm = "backtracking";
-    best.optimal = true;
-
-    ll nodes = 0;
-    ll pruned = 0;
-    vector<int> currentSelected;
-
-    auto dfs = [&](auto&& self, int level, ll currentWeight, ll currentValue) -> void {
-        ++nodes;
-
-        if (currentValue > best.value) {
-            best.value = currentValue;
-            best.weight = currentWeight;
-            best.selectedItems = currentSelected;
-        }
-
-        if (level >= static_cast<int>(items.size())) {
-            return;
-        }
-
-        const double bound = fractionalUpperBound(
-            items,
-            level,
-            instance.capacity - currentWeight,
-            currentValue
-        );
-        if (bound <= static_cast<double>(best.value)) {
-            ++pruned;
-            return;
-        }
-
-        const Item& item = items[level];
-        if (currentWeight + item.weight <= instance.capacity) {
-            currentSelected.push_back(item.index);
-            self(self, level + 1, currentWeight + item.weight, currentValue + item.value);
-            currentSelected.pop_back();
-        }
-        self(self, level + 1, currentWeight, currentValue);
-    };
-
-    dfs(dfs, 0, 0, 0);
-    sort(best.selectedItems.begin(), best.selectedItems.end());
-    best.details = "nodes=" + to_string(nodes) + ";pruned=" + to_string(pruned);
-    best.memoryBytes = sizeof(Item) * items.size() + sizeof(int) * items.size() * 2;
-    return best;
-}
-
-struct Node {
-    int level{};
-    ll value{};
-    ll weight{};
-    double bound{};
-    vector<int> selectedItems;
-};
-
-struct NodeLess {
-    bool operator()(const Node& a, const Node& b) const {
-        return a.bound < b.bound;
-    }
-};
-
-static Solution solveBranchBound(const Instance& instance) {
-    const vector<Item> items = sortedByRatio(instance.items);
-    priority_queue<Node, vector<Node>, NodeLess> queue;
-
-    Node start;
-    start.bound = fractionalUpperBound(items, 0, instance.capacity, 0);
-    queue.push(start);
-
-    Solution best;
-    best.algorithm = "branch_bound";
-    best.optimal = true;
-
-    ll nodes = 0;
-    ll pruned = 0;
-    size_t maxQueueSize = 1;
-
-    while (!queue.empty()) {
-        maxQueueSize = max(maxQueueSize, queue.size());
-        Node node = queue.top();
-        queue.pop();
-        ++nodes;
-
-        if (node.bound <= static_cast<double>(best.value) ||
-            node.level >= static_cast<int>(items.size())) {
-            ++pruned;
-            continue;
-        }
-
-        const Item& item = items[node.level];
-        if (node.weight + item.weight <= instance.capacity) {
-            Node include = node;
-            include.level = node.level + 1;
-            include.weight += item.weight;
-            include.value += item.value;
-            include.selectedItems.push_back(item.index);
-
-            if (include.value > best.value) {
-                best.value = include.value;
-                best.weight = include.weight;
-                best.selectedItems = include.selectedItems;
-            }
-
-            include.bound = fractionalUpperBound(
-                items,
-                include.level,
-                instance.capacity - include.weight,
-                include.value
-            );
-            if (include.bound > static_cast<double>(best.value)) {
-                queue.push(move(include));
-            } else {
-                ++pruned;
-            }
-        }
-
-        Node exclude = node;
-        exclude.level = node.level + 1;
-        exclude.bound = fractionalUpperBound(
-            items,
-            exclude.level,
-            instance.capacity - exclude.weight,
-            exclude.value
-        );
-        if (exclude.bound > static_cast<double>(best.value)) {
-            queue.push(move(exclude));
-        } else {
-            ++pruned;
-        }
-    }
-
-    sort(best.selectedItems.begin(), best.selectedItems.end());
-    best.details = "nodes=" + to_string(nodes) +
-                   ";pruned=" + to_string(pruned) +
-                   ";max_queue_size=" + to_string(maxQueueSize);
-    best.memoryBytes = sizeof(Item) * items.size() +
-                       maxQueueSize * (sizeof(Node) + sizeof(int) * items.size());
-    return best;
-}
-
-static void validateSolution(const Instance& instance, const Solution& solution) {
-    vector<char> seen(instance.items.size() + 1, 0);
-    ll weight = 0;
-    ll value = 0;
-
-    for (int index : solution.selectedItems) {
-        if (index <= 0 || index > static_cast<int>(instance.items.size())) {
-            throw runtime_error(solution.algorithm + " selected invalid item index");
-        }
-        if (seen[static_cast<size_t>(index)] != 0) {
-            throw runtime_error(solution.algorithm + " selected duplicate item");
-        }
-        seen[static_cast<size_t>(index)] = 1;
-        const Item& item = instance.items[static_cast<size_t>(index - 1)];
-        weight += item.weight;
-        value += item.value;
-    }
-
-    if (weight != solution.weight || value != solution.value) {
-        throw runtime_error(solution.algorithm + " value/weight mismatch");
-    }
-    if (weight > instance.capacity) {
-        throw runtime_error(solution.algorithm + " exceeds capacity");
-    }
-}
-
 static Solution runAlgorithm(const string& name, const Instance& instance) {
     if (name == "greedy") {
         return solveGreedy(instance);
     }
+    if (name == "greedy_value") {
+        return solveGreedy(instance, "value");
+    }
+    if (name == "greedy_weight") {
+        return solveGreedy(instance, "weight");
+    }
     if (name == "dynamic_programming") {
-        return solveDynamicProgramming(instance);
+        return solveDpRolling(instance);
+    }
+    if (name == "dynamic_programming_2d") {
+        return solveDp2d(instance);
     }
     if (name == "backtracking") {
         return solveBacktracking(instance);
@@ -774,7 +487,7 @@ static Record makeSkippedRecord(
     record.weightScale = instance.weightScale;
     record.algorithm = algorithm;
     record.status = "skipped";
-    record.optimal = algorithm != "greedy";
+    record.optimal = !startsWith(algorithm, "greedy");
     record.details = reason;
     return record;
 }
@@ -936,7 +649,7 @@ static vector<Record> runExperiment(
 
         for (const auto& algorithm : algorithms) {
             rowIndexes.push_back(records.size());
-            if (algorithm == "dynamic_programming") {
+            if (startsWith(algorithm, "dynamic_programming")) {
                 const long double states = static_cast<long double>(instance.items.size()) *
                     static_cast<long double>(instance.capacity + 1);
                 if (states > maxDpStates) {
@@ -945,6 +658,16 @@ static vector<Record> runExperiment(
                         algorithm,
                         "states>" + to_string(static_cast<ll>(maxDpStates)) +
                             "; use --max-dp-states to run"
+                    ));
+                    continue;
+                }
+                // 二维表每状态 8 字节，超过 2GB 直接跳过，避免分配失败
+                if (algorithm == "dynamic_programming_2d" &&
+                    states * 8.0L > 2000000000.0L) {
+                    records.push_back(makeSkippedRecord(
+                        instance,
+                        algorithm,
+                        "2d table>2GB; use dynamic_programming (rolling) instead"
                     ));
                     continue;
                 }
@@ -960,7 +683,17 @@ static vector<Record> runExperiment(
                 ));
                 continue;
             }
-            records.push_back(runOne(instance, algorithm));
+            try {
+                records.push_back(runOne(instance, algorithm));
+            } catch (const exception& ex) {
+                Record failed = makeSkippedRecord(
+                    instance,
+                    algorithm,
+                    string("failed: ") + ex.what()
+                );
+                failed.status = "failed";
+                records.push_back(failed);
+            }
         }
 
         ll reference = instance.knownOptimum > 0 ? instance.knownOptimum : 0;
@@ -1197,7 +930,10 @@ static void writeSvgChart(
         maxValue = max(maxValue, transformed);
     }
 
-    const int width = max(760, 190 * static_cast<int>(datasets.size()));
+    const int width = max(
+        max(760, 190 * static_cast<int>(datasets.size())),
+        160 + 175 * static_cast<int>(algorithms.size())
+    );
     const int height = 430;
     const int marginLeft = 70;
     const int marginRight = 24;
@@ -1210,7 +946,10 @@ static void writeSvgChart(
 
     const unordered_map<string, string> colors = {
         {"greedy", "#3366cc"},
+        {"greedy_value", "#0099c6"},
+        {"greedy_weight", "#dd4477"},
         {"dynamic_programming", "#dc3912"},
+        {"dynamic_programming_2d", "#990099"},
         {"backtracking", "#ff9900"},
         {"branch_bound", "#109618"}
     };
@@ -1222,11 +961,7 @@ static void writeSvgChart(
 
     auto fmt = [&](double value) {
         ostringstream out;
-        if (metric == "quality_ratio") {
-            out << fixed << setprecision(2) << value;
-        } else {
-            out << fixed << setprecision(2) << value;
-        }
+        out << fixed << setprecision(2) << value;
         return out.str();
     };
 
@@ -1301,7 +1036,7 @@ static void writeSvgChart(
         file << "<text x=\"" << legendX + 18 << "\" y=\"" << legendY
              << "\" font-family=\"Arial, sans-serif\" font-size=\"12\">"
              << htmlEscape(label) << "</text>\n";
-        legendX += 160;
+        legendX += 175;
     }
 
     file << "</svg>\n";
@@ -1341,13 +1076,13 @@ static void writeOutputs(const vector<Record>& records, const fs::path& outDir) 
 static void printTable(const vector<Record>& records) {
     cout << left << setw(22) << "source"
               << setw(42) << "dataset"
-              << setw(22) << "algorithm"
+              << setw(26) << "algorithm"
               << right << setw(9) << "value"
               << setw(9) << "weight"
               << setw(12) << "time_ms"
               << setw(12) << "mem_kb"
               << setw(10) << "quality" << '\n';
-    cout << string(130, '-') << '\n';
+    cout << string(142, '-') << '\n';
 
     const size_t maxConsoleRows = 200;
     for (size_t i = 0; i < records.size() && i < maxConsoleRows; ++i) {
@@ -1362,7 +1097,7 @@ static void printTable(const vector<Record>& records) {
         }
         cout << left << setw(22) << source
                   << setw(42) << dataset
-                  << setw(22) << record.algorithm;
+                  << setw(26) << record.algorithm;
         if (record.status == "ok") {
             cout << right << setw(9) << formatScaled(record.value, record.valueScale)
                       << setw(9) << formatScaled(record.weight, record.weightScale)
@@ -1385,6 +1120,7 @@ static void printTable(const vector<Record>& records) {
 }
 
 static void runSelfTest() {
+    // 用例 1：教材经典实例，最优值 220
     Instance instance;
     instance.name = "known_case";
     instance.capacity = 50;
@@ -1396,6 +1132,7 @@ static void runSelfTest() {
 
     const vector<string> exactAlgorithms = {
         "dynamic_programming",
+        "dynamic_programming_2d",
         "backtracking",
         "branch_bound"
     };
@@ -1407,18 +1144,61 @@ static void runSelfTest() {
         }
     }
 
-    Solution greedy = solveGreedy(instance);
+    // 贪心三种准则：密度准则 160，价值准则恰好 220，重量准则 160
+    Solution greedy = runAlgorithm("greedy", instance);
     validateSolution(instance, greedy);
     if (greedy.value != 160) {
         throw runtime_error("greedy self-test failed");
     }
+    Solution greedyValue = runAlgorithm("greedy_value", instance);
+    validateSolution(instance, greedyValue);
+    if (greedyValue.value != 220) {
+        throw runtime_error("greedy_value self-test failed");
+    }
+    Solution greedyWeight = runAlgorithm("greedy_weight", instance);
+    validateSolution(instance, greedyWeight);
+    if (greedyWeight.value != 160) {
+        throw runtime_error("greedy_weight self-test failed");
+    }
+
+    // 用例 2：固定的 12 件物品实例，交叉验证四种精确算法结果一致
+    Instance cross;
+    cross.name = "cross_check";
+    cross.capacity = 87;
+    cross.items = {
+        {1, 23, 92}, {2, 31, 57}, {3, 29, 49}, {4, 44, 68},
+        {5, 53, 60}, {6, 38, 43}, {7, 63, 67}, {8, 85, 84},
+        {9, 89, 87}, {10, 82, 72}, {11, 7, 30}, {12, 17, 55}
+    };
+
+    ll expected = -1;
+    for (const auto& algorithm : exactAlgorithms) {
+        Solution solution = runAlgorithm(algorithm, cross);
+        validateSolution(cross, solution);
+        if (expected < 0) {
+            expected = solution.value;
+        } else if (solution.value != expected) {
+            throw runtime_error(algorithm + " cross-check failed: " +
+                                to_string(solution.value) + " != " + to_string(expected));
+        }
+    }
+
+    // 贪心解不应超过精确最优值
+    for (const string& name : {string("greedy"), string("greedy_value"), string("greedy_weight")}) {
+        Solution solution = runAlgorithm(name, cross);
+        validateSolution(cross, solution);
+        if (solution.value > expected) {
+            throw runtime_error(name + " exceeds exact optimum in cross-check");
+        }
+    }
+
     cout << "self-test passed\n";
 }
 
 static void printUsage() {
     cout
         << "Usage:\n"
-        << "  knapsack_experiment [options]\n\n"
+        << "  knapsack01_experiment [options]\n\n"
         << "Options:\n"
         << "  --self-test                         run built-in correctness test\n"
         << "  --data-dir DIR                      unified/simple dataset directory, default: data\n"
@@ -1426,9 +1206,12 @@ static void printUsage() {
         << "  --jj-root DIR                       JorikJooken raw root, default: data/_raw/jj_extract/knapsackProblemInstances-master\n"
         << "  --data-only                         only read --data-dir, skip legacy raw sources\n"
         << "  --include-raw-sources               also read legacy Unicauca and JorikJooken directories\n"
-        << "  --out-dir DIR                       output directory, default: results\n"
+        << "  --out-dir DIR                       output directory, default: experiments\n"
         << "  --instance FILE                     run one dataset file, repeatable\n"
-        << "  --algorithm NAME                    greedy | dynamic_programming | backtracking | branch_bound | all\n"
+        << "  --algorithm NAME                    greedy | greedy_value | greedy_weight |\n"
+        << "                                      dynamic_programming (1d rolling) |\n"
+        << "                                      dynamic_programming_2d | backtracking |\n"
+        << "                                      branch_bound | all, repeatable\n"
         << "  --max-exact-items N                 skip backtracking/branch_bound above N items, default: 30\n"
         << "  --max-dp-states N                   skip DP above n*(capacity+1), default: 50000000\n"
         << "  --help                              show this help\n";
@@ -1440,12 +1223,8 @@ int main(int argc, char* argv[]) {
     string jjRoot = "data/_raw/jj_extract/knapsackProblemInstances-master";
     string outDir = "experiments";
     vector<string> explicitFiles;
-    vector<string> algorithms = {
-        "greedy",
-        "dynamic_programming",
-        "backtracking",
-        "branch_bound"
-    };
+    vector<string> algorithms = kDefaultAlgorithms;
+    bool algorithmsCustomized = false;
     int maxExactItems = 30;
     long double maxDpStates = 50000000.0L;
     bool allSources = false;
@@ -1477,21 +1256,19 @@ int main(int argc, char* argv[]) {
             } else if (arg == "--algorithm" && i + 1 < argc) {
                 const string name = argv[++i];
                 if (name == "all") {
-                    algorithms = {"greedy", "dynamic_programming", "backtracking", "branch_bound"};
+                    algorithms = kDefaultAlgorithms;
+                    algorithmsCustomized = false;
                 } else if (
-                    name == "greedy" ||
-                    name == "dynamic_programming" ||
-                    name == "backtracking" ||
-                    name == "branch_bound"
+                    find(kKnownAlgorithms.begin(), kKnownAlgorithms.end(), name) !=
+                    kKnownAlgorithms.end()
                 ) {
-                    if (algorithms.size() == 4 &&
-                        algorithms[0] == "greedy" &&
-                        algorithms[1] == "dynamic_programming" &&
-                        algorithms[2] == "backtracking" &&
-                        algorithms[3] == "branch_bound") {
+                    if (!algorithmsCustomized) {
                         algorithms.clear();
+                        algorithmsCustomized = true;
                     }
-                    algorithms.push_back(name);
+                    if (find(algorithms.begin(), algorithms.end(), name) == algorithms.end()) {
+                        algorithms.push_back(name);
+                    }
                 } else {
                     throw runtime_error("unknown algorithm: " + name);
                 }
